@@ -1,0 +1,18 @@
+
+.tag {
+    background-color: #99ff99;
+    border-style: solid;
+    display: inline-block;
+    padding: 2px;
+    margin-left: 10px;
+    text-align: center;
+}
+
+#tag_selector .tag {
+    opacity: 0.2;
+}
+
+#tag_selector .selected {
+    opacity: 1;
+}
+
