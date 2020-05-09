@@ -88,7 +88,7 @@ function toggleTag(tag) {
 
 // Main
 $(document).ready(function() {
-    $.getJSON( "SQL.json", function( data ) {
+    $.getJSON("https://raw.githubusercontent.com/3enoit3/data_tools.js/master/lists/cpp_features.json", function(data) {
         var unique_tags = []
 
         // Read JSON
