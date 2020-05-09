@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html>
+<meta charset="utf-8">
+<head>
+    <style>
+html, body, .container-fluid, .row, #view, #graph {
+  height: 100%;
+}
+
+* {
+    border: 1px solid black;
+}
+    </style>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"></link>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <div id="view" class="col-md-8">
+                <div id="graph"></div>
+            </div>
+            <div id="control" class="col-md-4">
+                <div class="row">
+                    <textarea id="node_properties" class="form-control"></textarea>
+                </div>
+                <div class="row">
+                    <textarea id="link_properties" class="form-control"></textarea>
+                </div>
+                <div class="row">
+                    <button type="button" id="redraw" class="form-control">Redraw</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="http://d3js.org/d3.v3.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script>
+
+var g_width = $("#graph").width();
+var g_height = $("#graph").height();
+
+var g_node_props = function(data, node) { node.shape.fill = "yellow"; };
+var g_link_props = function(data, link) { link.stroke = "green"; };
+
+
+function buildDisplayProperties(data) {
+    function defaultNodeDisplay(id) {
+        return {
+            id: id,
+            shape: {
+                symbol: { size: 300, type: "square" },
+                fill: "red",
+                "stroke-width": 1.5,
+                stroke: "white"
+            },
+            text: {},
+            enabled: true
+        };
+    }
+
+    function defaultLinkDisplay(id) {
+        return {
+            id: id,
+            "stroke-width": 1.5,
+            stroke: "blue",
+            opacity: 1,
+            enabled: true
+        };
+    }
+
+    var display = { nodes: [], links: [] };
+
+    data.nodes.forEach(function(data_node) {
+        graph_node = defaultNodeDisplay(data_node.id);
+        g_node_props(data_node, graph_node);
+        display.nodes.push(graph_node);
+    });
+
+    data.links.forEach(function(data_link) {
+        graph_link = defaultLinkDisplay(data_link.id);
+        g_link_props(data_link, graph_link);
+        display.links.push(graph_link);
+    });
+
+    return display;
+}
+
+function buildGraph(data, display) {
+    var nodes = [];
+    data.nodes.forEach(function(n) {
+        if( display.nodes[n.id].enabled )
+            nodes.push({ id: n.id, text: n.text });
+    });
+
+    function get_graph_id(display_id) {
+        graph_id = -1
+        nodes.forEach( function(n, i) {
+            if( n.id == display_id )
+                graph_id = i;
+        });
+        return graph_id;
+    };
+
+    var links = [];
+    data.links.forEach(function(l) {
+        if( display.links[l.id].enabled && display.nodes[l.source].enabled && display.nodes[l.target].enabled )
+            links.push({ id: l.id, source: get_graph_id(l.source), target: get_graph_id(l.target) });
+    });
+
+    return { nodes: nodes, links: links };
+}
+
+function fillSvg(svg, data) {
+    display = buildDisplayProperties(data)
+    graph = buildGraph(data, display);
+
+    // Definitions
+    var defs = svg.append("defs");
+
+    // Markers
+    defs.append("marker")
+        .attr({
+            "id": "arrow",
+            "viewBox": "0 -5 10 10",
+            "refX": 20,
+            "refY": 0,
+            "markerWidth": 7,
+            "markerHeight": 7,
+            "orient": "auto"
+        })
+        .append("path")
+            .attr("d", "M0,-5L10,0L0,5")
+            .attr("class","arrowHead");
+
+    // Graph
+    var g = svg.append("g");
+
+    // Force (creation before links and nodes)
+    var force = d3.layout.force()
+        .linkDistance(60)
+        .charge(-300)
+        .size([g_width, g_height]);
+
+    // Links
+    var link = g.selectAll(".link")
+        .data(graph.links)
+        .enter().append("line")
+        .attr("class", "link")
+        .attr("marker-end", "url(#arrow)")
+        .style("stroke-width", function(d) { return display.links[d.id]["stroke-width"] })
+        .style("stroke", function(d) { return display.links[d.id].stroke })
+        .style("opacity", function(d) { return display.links[d.id].opacity });
+
+    // Nodes
+    var node = g.selectAll(".node")
+        .data(graph.nodes)
+        .enter().append("g")
+        .attr("class", "node");
+
+    var shape = node.append("path")
+        .attr("class", "shape")
+        .attr("d", d3.svg.symbol()
+            .size(function(d) { return display.nodes[d.id].shape.symbol.size })
+            .type(function(d) { return display.nodes[d.id].shape.symbol.type })
+        )
+        .style("fill", function(d) { return display.nodes[d.id].shape.fill })
+        .style("stroke-width", function(d) { return display.nodes[d.id].shape["stroke-width"] })
+        .style("stroke", function(d) { return display.nodes[d.id].shape.stroke });
+
+    var text = node.append("text")
+        .attr("class", "text")
+        .attr("dy", -15)
+        .style("font-size", "10px")
+        .text(function(d) { return d.text; })
+        .style("text-anchor", "middle")
+
+    // Zoom
+    var zoom = d3.behavior.zoom()
+    zoom.scaleExtent([0.1, 7])
+    zoom.on("zoom", function() {
+        g.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
+    });
+    svg.call(zoom);
+
+    // Force
+    force.nodes(graph.nodes)
+        .links(graph.links)
+        .on("tick", function() {
+            node.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+
+            link.attr("x1", function(d) { return d.source.x; })
+                .attr("y1", function(d) { return d.source.y; })
+                .attr("x2", function(d) { return d.target.x; })
+                .attr("y2", function(d) { return d.target.y; });
+        })
+        .start();
+
+    // Resize
+    function resize() {
+        var width = $("#graph").width();
+        var height = $("#graph").height();
+
+        svg.attr("width", width)
+            .attr("height", height);
+
+        force.size([force.size()[0]+(width-g_width)/zoom.scale(),
+                force.size()[1]+(height-g_height)/zoom.scale()])
+            .resume();
+
+        g_width = width;
+        g_height = height;
+    }
+    d3.select("#graph").on("resize", resize)
+    resize();
+
+    // Drag and drop
+    node.call(force.drag())
+
+    // Fix node on the canvas
+    node.on("mousedown", function(d) {
+        d3.event.stopPropagation();
+        d3.select(this).classed("fixed", d.fixed = true);
+    });
+
+    node.on("dblclick", function(d) {
+        d3.event.stopPropagation();
+        d3.select(this).classed("fixed", d.fixed = false);
+    });
+}
+
+function cleanSvg(svg) {
+    svg.selectAll(".link").remove();
+    svg.selectAll(".node").remove();
+}
+
+$.getJSON( "deps.json", function(data) {
+    var svg = d3.select("#graph").append("svg");
+    svg.style("width","100%");
+    svg.style("height","100%");
+    svg.style("cursor","move");
+
+    fillSvg(svg, data);
+
+    // Wire redraw button
+    $("#redraw").click(function() {
+        cleanSvg(svg);
+        g_node_props = new Function("data", "node", $("#node_properties")[0].value);
+        g_link_props = new Function("data", "link", $("#link_properties")[0].value);
+        fillSvg(svg, data);
+    });
+});
+
+    </script>
+</body>
+</html>
