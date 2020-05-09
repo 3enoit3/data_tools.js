@@ -11,7 +11,7 @@ $.fn.dataTable.ext.search.push(
         }
         else {
             // show only rows whose at least one tag matches the selected tags
-            data_tags = data[0].split(" ");
+            data_tags = data[2].split(" ");
             for (var i = 0; i < data_tags.length; i++) {
                 if ( selected_tags.has(data_tags[i]) ) {
                     return true;
@@ -88,7 +88,7 @@ function toggleTag(tag) {
 
 // Main
 $(document).ready(function() {
-    $.getJSON("https://raw.githubusercontent.com/3enoit3/data_tools.js/master/lists/cpp_features.json", function(data) {
+    $.getJSON("cpp_features.json", function(data) {
         var unique_tags = []
 
         // Read JSON
