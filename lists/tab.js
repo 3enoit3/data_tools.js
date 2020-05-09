@@ -83,7 +83,7 @@ function toggleTag(tag) {
 
     // Update view
     updateTagSelector();
-    $('#files').DataTable().draw();
+    $('#rows').DataTable().draw();
 }
 
 // Main
@@ -92,28 +92,17 @@ $(document).ready(function() {
         var unique_tags = []
 
         // Read JSON
-        var DT_columns = [ {"title": "Tags"}, {"title": "Table"}, {"title": "Column"}, {"title": "Type"}, {"title": "C++ Binding"} ];
+        var DT_columns = [ {"title": "name"}, {"title": "links"}, {"title": "tags"}, {"title": "comments"} ];
         var DT_data = [];
-        $.each( data.tables, function(index, table) {
-            var tagsCell = "";
-            if( "tags" in table ) {
-                tagsCell = buildTagsCell(table.tags, unique_tags);
-            }
-            var tableCell = table.name;
-            if( "links" in table ) {
-                tableCell = "<a href='" + table["links"]["url"] + "'>" + table.name + "</a>";
-            }
-            $.each( table.columns, function(cindex, column) {
-                var bindCell = ""
-                if( "bind" in column ) {
-                    bindCell = column.bind
-                }
-                DT_data.push( [tagsCell, tableCell, column.name, column.type, bindCell] )
-            })
+        $.each( data.rows, function(index, row) {
+            DT_data.push( [row.name,
+                          buildLinksCell(row.links),
+                          buildTagsCell(row.tags, unique_tags),
+                          row.comments] );
         });
 
         // Build table
-        var table = $('#files').DataTable( {
+        var table = $('#rows').DataTable( {
             data: DT_data,
             columns: DT_columns,
             paging: false
