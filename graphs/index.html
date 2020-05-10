@@ -42,8 +42,8 @@ html, body, .container-fluid, .row, #view, #graph {
 var g_width = $("#graph").width();
 var g_height = $("#graph").height();
 
-var g_node_props = function(data, node) { node.shape.fill = "yellow"; };
-var g_link_props = function(data, link) { link.stroke = "green"; };
+var g_node_props = function(data, node) {};
+var g_link_props = function(data, link) {};
 
 
 function buildDisplayProperties(data) {
@@ -52,7 +52,7 @@ function buildDisplayProperties(data) {
             id: id,
             shape: {
                 symbol: { size: 300, type: "square" },
-                fill: "red",
+                fill: "yellow",
                 "stroke-width": 1.5,
                 stroke: "white"
             },
@@ -65,7 +65,7 @@ function buildDisplayProperties(data) {
         return {
             id: id,
             "stroke-width": 1.5,
-            stroke: "blue",
+            stroke: "green",
             opacity: 1,
             enabled: true
         };
