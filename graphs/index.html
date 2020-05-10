@@ -236,7 +236,7 @@ function cleanSvg(svg) {
     svg.selectAll(".node").remove();
 }
 
-$.getJSON( "deps.json", function(data) {
+$.getJSON("q3_src_deps.json", function(data) {
     var svg = d3.select("#graph").append("svg");
     svg.style("width","100%");
     svg.style("height","100%");

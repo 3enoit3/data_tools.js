@@ -44,7 +44,7 @@ links = []
 path = "."
 for root, dirs, files in os.walk(path):
     for f in files:
-        if f.endswith(".hpp") or f.endswith(".cpp"):
+        if f.endswith(".h") or f.endswith(".c"):
             links += list( get_links(root, f) )
 
 for n in nodes:
@@ -54,6 +54,6 @@ graph = { 'nodes': [{'id': n.id, 'text': n.filename, 'path': n.path} for n in no
         'links': [{'id': i, 'source': l[0], 'target': l[1]} for i, l in enumerate(links)] }
 
 s = json.dumps(graph, indent=2, sort_keys=True)
-with open("includes.json", "w") as json_file:
+with open("src_deps.json", "w") as json_file:
     json_file.write(s)
 
