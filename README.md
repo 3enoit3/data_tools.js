@@ -6,16 +6,17 @@ A simple tool to browse a read-only inventory:
 * follow link
 * filter on tags
 * search on all columns
-
+* *based on jquery and [datatables](https://datatables.net/)*
 
 [Example: Modern C++ features](https://3enoit3.github.io/data_tools.js/lists/)
 
 ## Graphs : [*live example*](https://3enoit3.github.io/data_tools.js/graphs/)
 A simple tool to play with a read-only graph:
 * plug data as a simple json file
+* zoom and move around
 * click and drag a node to fix its position; click again to release it
 * dynamically change properties of nodes and links by injecting javascript code
-
+* *based on jquery and d3.js*
 
 [Example: Dependencies between C source files of the Quake III game](https://3enoit3.github.io/data_tools.js/graphs/)
 * Dynamically change nodes:
