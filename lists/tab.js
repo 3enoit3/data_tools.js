@@ -109,7 +109,7 @@ $(document).ready(function() {
         });
 
         // Add all tags to tag selector
-        $.each(unique_tags, function(index, tag) {
+        $.each(unique_tags.sort(), function(index, tag) {
             $('#tag_selector').append( buildTag(tag) );
         });
     });
